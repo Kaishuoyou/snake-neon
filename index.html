@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🐍 Snake Neon — 貪吃蛇霓虹版</title>
+  <meta name="description" content="深夜霓虹風格的網頁版貪吃蛇遊戲，支援遊戲數據記錄、排行榜與遊客登入。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Dynamic Background Blobs -->
+  <div class="bg-blob blob-cyan" aria-hidden="true"></div>
+  <div class="bg-blob blob-fuchsia" aria-hidden="true"></div>
+
+  <!-- ==================== LOGIN SCREEN ==================== -->
+  <div id="login-screen" class="screen active" role="main">
+    <div class="glass-card login-card">
+      <div class="logo-area">
+        <div class="snake-icon" aria-hidden="true">🐍</div>
+        <h1 class="game-title gradient-text">Snake Neon</h1>
+        <p class="game-subtitle">霓虹深海貪吃蛇</p>
+      </div>
+
+      <div class="login-form">
+        <label class="input-label" for="nickname-input">玩家暱稱</label>
+        <div class="input-wrapper">
+          <span class="input-icon" aria-hidden="true">👤</span>
+          <input
+            type="text"
+            id="nickname-input"
+            class="neon-input"
+            placeholder="輸入你的暱稱（1–12字元）"
+            maxlength="12"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+        <p class="input-hint" id="input-hint"></p>
+      </div>
+
+      <button id="start-login-btn" class="btn btn-primary btn-large" aria-label="開始遊戲">
+        <span class="btn-text">開始遊戲</span>
+        <span class="btn-icon" aria-hidden="true">▶</span>
+      </button>
+
+      <div class="login-stats" id="login-stats" style="display:none;">
+        <div class="stat-chip">
+          <span class="stat-chip-label">最高分</span>
+          <span class="stat-chip-value" id="login-highscore">0</span>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-chip-label">遊玩次數</span>
+          <span class="stat-chip-value" id="login-games">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== GAME SCREEN ==================== -->
+  <div id="game-screen" class="screen" role="main">
+    <div class="game-layout">
+
+      <!-- Left Panel: Stats -->
+      <aside class="glass-card side-panel left-panel" aria-label="遊戲統計">
+        <div class="player-badge">
+          <div class="player-avatar" id="player-avatar" aria-hidden="true">👤</div>
+          <div class="player-info">
+            <div class="player-name" id="player-name">玩家</div>
+            <div class="player-tag">遊客</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="stats-grid">
+          <div class="stat-block" id="stat-score">
+            <div class="stat-value" id="current-score">0</div>
+            <div class="stat-label">目前分數</div>
+          </div>
+          <div class="stat-block" id="stat-highscore">
+            <div class="stat-value highlight" id="high-score">0</div>
+            <div class="stat-label">最高紀錄</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-value" id="current-level">1</div>
+            <div class="stat-label">目前等級</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-value" id="food-eaten">0</div>
+            <div class="stat-label">吃掉食物</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="session-info">
+          <div class="info-row">
+            <span class="info-label">登入時間</span>
+            <span class="info-value" id="session-time">--:--</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">遊戲時長</span>
+            <span class="info-value" id="game-duration">0:00</span>
+          </div>
+        </div>
+
+        <button id="switch-player-btn" class="btn btn-ghost btn-sm" aria-label="切換玩家">
+          切換玩家
+        </button>
+      </aside>
+
+      <!-- Center: Canvas -->
+      <main class="canvas-area">
+        <div class="canvas-wrapper">
+          <canvas id="game-canvas" width="400" height="400" aria-label="貪吃蛇遊戲畫布" role="img"></canvas>
+          <div class="canvas-overlay" id="canvas-overlay" aria-live="polite">
+            <div class="overlay-content" id="overlay-content"></div>
+          </div>
+        </div>
+
+        <div class="game-controls">
+          <button id="start-btn" class="btn btn-primary" aria-label="開始遊戲">開始</button>
+          <button id="pause-btn" class="btn btn-secondary" aria-label="暫停遊戲" disabled>暫停</button>
+          <button id="reset-btn" class="btn btn-ghost" aria-label="重置遊戲">重置</button>
+        </div>
+
+        <div class="key-hints" aria-label="操作說明">
+          <div class="key-hint-group">
+            <kbd class="key">W</kbd><kbd class="key">A</kbd><kbd class="key">S</kbd><kbd class="key">D</kbd>
+            <span class="key-desc">或方向鍵移動</span>
+          </div>
+          <div class="key-hint-group">
+            <kbd class="key">Space</kbd>
+            <span class="key-desc">暫停/繼續</span>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right Panel: Leaderboard -->
+      <aside class="glass-card side-panel right-panel" aria-label="歷史記錄">
+        <h2 class="panel-title gradient-text">歷史記錄</h2>
+
+        <div class="leaderboard-header">
+          <span>#</span>
+          <span>分數</span>
+          <span>等級</span>
+          <span>日期</span>
+        </div>
+
+        <div class="leaderboard-list" id="leaderboard-list">
+          <div class="leaderboard-empty">尚無記錄<br/>快來挑戰吧！</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="total-stats">
+          <div class="total-stat-row">
+            <span>累計遊玩</span>
+            <span id="total-games">0 局</span>
+          </div>
+          <div class="total-stat-row">
+            <span>累計時長</span>
+            <span id="total-time">0 分鐘</span>
+          </div>
+        </div>
+
+        <button id="clear-records-btn" class="btn btn-danger btn-sm" aria-label="清除所有記錄">
+          清除記錄
+        </button>
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- Score Pop Animation Container -->
+  <div id="score-pop-container" aria-hidden="true"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
